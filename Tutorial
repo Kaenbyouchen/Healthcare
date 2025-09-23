@@ -1,5 +1,5 @@
 每次在本地修改项目，然后更新github和discovery：
-1) 本地电脑：提交并推送到 GitHub：
+1) 本地电脑：提交并推送到 GitHub (或者直接用pycharm自带的commit and push)：
 git status
 git add .
 git commit -m "本次修改的说明"
@@ -14,7 +14,7 @@ cd /project2/ruishanl_1185/zrui6736/Healthcare
 # 或者（若建了快捷链接）
 # cd ~/Healthcare
 
-# 拉取最新代码
+# 拉取最新代码 (一定要在/project2/ruishanl_1185/zrui6736/Healthcare里面)
 git pull
 
 # 轻量脚本可以直接跑（登录节点不要长时间/重负载）
