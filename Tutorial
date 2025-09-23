@@ -1,0 +1,21 @@
+每次在本地修改项目，然后更新github和discovery：
+1) 本地电脑：提交并推送到 GitHub：
+git status
+git add .
+git commit -m "本次修改的说明"
+git push
+
+2) Discovery：拉取更新、进入环境、运行：
+# 登录
+ssh zrui6736@discovery.usc.edu
+
+# 进入项目（任选其一）
+cd /project2/ruishanl_1185/zrui6736/Healthcare
+# 或者（若建了快捷链接）
+# cd ~/Healthcare
+
+# 拉取最新代码
+git pull
+
+# 轻量脚本可以直接跑（登录节点不要长时间/重负载）
+python your_script.py
