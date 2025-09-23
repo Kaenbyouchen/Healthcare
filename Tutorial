@@ -19,3 +19,16 @@ git pull
 
 # 轻量脚本可以直接跑（登录节点不要长时间/重负载）
 python your_script.py
+
+#分配GPU:进入bash：
+# 申请 1 块 GPU，4 CPU 核，16GB 内存，1 小时
+srun --partition=gpu \
+     --gres=gpu:1 \
+     --cpus-per-task=4 \
+     --mem=16G \
+     --time=01:00:00 \
+     --pty bash
+
+#查询所在目录：pwd
+#查询所用环境：which python
+#环境名：py310
