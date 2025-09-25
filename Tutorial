@@ -45,7 +45,12 @@ $nnUNet_raw/Dataset001_xxx/
 命名规则要求：
 影像：caseID_0000.nii.gz
 标签：caseID.nii.gz
-
+使用powershell：
+cd "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_raw\Ruishan_T1_VIBE_Data_30"
+看到确认提示符如PS D:\USC Research ...\Ruishan_T1_VIBE_Data_30>后
+Get-ChildItem -File -Filter "*_img.nii.gz" | ForEach-Object { $new = $_.Name -replace "_img\.nii\.gz$", "_0000.nii.gz"; Rename-Item $_.FullName $new; Move-Item $new ".\imagesTr\" }
+Get-ChildItem -File -Filter "*_lbl.nii.gz" | ForEach-Object { $new = $_.Name -replace "_lbl\.nii\.gz$", ".nii.gz"; Rename-Item $_.FullName $new; Move-Item $new ".\labelsTr\" }
+以上是重命名加分配到特定文件夹
 
 
 服务器上配置：
