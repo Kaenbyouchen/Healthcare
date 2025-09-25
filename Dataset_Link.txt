@@ -1,0 +1,10 @@
+CT:
+BTCV数据集：30训练20测试，
+13类别：脾脏、右肾、左肾、胆囊、食管、肝脏、胃、主动脉、下腔静脉、门静脉和脾静脉、胰腺、右肾上腺、左肾上腺
+https://aistudio.baidu.com/datasetdetail/107078
+
+AbdomenCT-1K 是一个大规模腹部 CT 数据集，包含了 1112 例 CT 扫描，用于 4 种腹部器官的分割，包括肝脏、肾脏、脾脏和胰腺。需注意，肾脏没有区分左右
+Part 1: https://zenodo.org/record/5903099
+Part 2: https://zenodo.org/record/5903846
+Part 3: https://zenodo.org/record/5903769
+Baidu Netdisk: https://pan.baidu.com/s/1Wj8bi29IGVXfLhlpU4XqiA pw: 6uhw"
