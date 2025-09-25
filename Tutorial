@@ -52,6 +52,16 @@ Get-ChildItem -File -Filter "*_img.nii.gz" | ForEach-Object { $new = $_.Name -re
 Get-ChildItem -File -Filter "*_lbl.nii.gz" | ForEach-Object { $new = $_.Name -replace "_lbl\.nii\.gz$", ".nii.gz"; Rename-Item $_.FullName $new; Move-Item $new ".\labelsTr\" }
 以上是重命名加分配到特定文件夹
 
+而后配置环境变量：设置原始数据、预处理数据和结果存放位置：
+打开powershell管理员运行：
+setx nnUNet_raw "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_raw"
+setx nnUNet_preprocessed "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_preprocessed"
+setx nnUNet_results "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_results"
+验证：
+echo $Env:nnUNet_raw
+echo $Env:nnUNet_preprocessed
+echo $Env:nnUNet_results
+
 
 服务器上配置：
 # 安装 nnU-Net
