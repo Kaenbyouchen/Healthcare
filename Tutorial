@@ -32,3 +32,27 @@ srun --partition=gpu \
 #查询所在目录：pwd
 #查询所用环境：which python
 #环境名：py310
+
+
+复现代码：
+1.nnUnet：
+需要数据集格式：
+$nnUNet_raw/Dataset001_xxx/
+    imagesTr/
+    labelsTr/
+    imagesTs/
+    dataset.json
+命名规则要求：
+影像：caseID_0000.nii.gz
+标签：caseID.nii.gz
+
+
+
+服务器上配置：
+# 安装 nnU-Net
+conda install install nnunetv2
+# 创建并设置三类目录（改成服务器上的实际路径）
+mkdir -p /data/nnUNet_raw /data/nnUNet_preprocessed /data/nnUNet_results
+echo 'export nnUNet_raw=/data/nnUNet_raw'             >> ~/.bashrc
+echo 'export nnUNet_preprocessed=/data/nnUNet_preprocessed' >> ~/.bashrc
+echo 'export nnUNet_results=/data/nnUNet_results'      >> ~/.bashrc

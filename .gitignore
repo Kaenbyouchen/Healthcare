@@ -1,1 +1,5 @@
 .idea/workspace.xml
+# 忽略 nnU-Net 大数据
+nnunet/nnUNet_raw/
+nnunet/nnUNet_preprocessed/
+nnunet/nnUNet_results/
