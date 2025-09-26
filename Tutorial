@@ -82,6 +82,18 @@ conda activate Healthcare
 
 
 服务器上配置：
+！！！每次要做的事：
+source ~/.bashrc
+conda activate /project2/ruishanl_1185/zrui6736/envs/py310
+cd Healthcare
+sbatch nnunet_train_2d.sbatch   :这里根据任务运行不同脚本，而后会得到例如Submitted batch job 2643808
+另外脚本中已定义分配GPU数量时间等，以及训练并行线程，线程数，2D/3D等
+tail -f nnunet_2d.2643808.out  中间这段号码就是上面给的，可持续跟踪训练
+tail -f nnunet_2d.2643808.err  查看错误信息（没反应就进这里看看报没报错）
+ctrl+c 退出，但是还可以一直训练
+squeue -u $USER：查询是否有任务占用中
+scancel 2643808:取消任务
+
 # 安装 nnU-Net
 pip install nnunetv2
 
@@ -101,7 +113,7 @@ source ~/.bashrc
 conda activate /project2/ruishanl_1185/zrui6736/envs/py310
 
 #分配GPU:申请 1 块 GPU，4 CPU 核，16GB 内存，6 小时
-srun --partition=gpu --gres=gpu:1 --cpus-per-task=4 --mem=16G --time=6:00:00 --pty bash
+srun --partition=gpu --gres=gpu:1 --cpus-per-task=6 --mem=32G --time=6:00:00 --pty bash
 
 激活后检查cuda：
 python - <<'PY'
@@ -112,10 +124,15 @@ PY
 1. 2D(最好4CPU,24G内存)：把 3D 体数据切成单独 2D 切片训练；显存需求最低；速度快；对跨切片信息利用较少。
 依次是nnU-Net 数据增强/数据加载的并行进程数为1,最多使用 4 个 CPU 线程，
 export nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 2d 0 -device cuda
+如果是P100,显卡用这行（nnUNet_compile用不了）：
+export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 001 2d 0 -device cuda
+
 2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
 export nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 3d_fullres 0 -device cuda
+
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
 nnUNetv2_train 001 3d_lowres 0 -device cuda
+
 4. 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
 nnUNetv2_train 001 3d_cascade_fullres 0 -device cuda
 
@@ -124,4 +141,16 @@ Dice：0–1 的重叠指标，值越高分割越准
 各种loss：可以是负数，越负越好
 Pseudo-Dice 是 nnU-Net 的主要评估指标，相当于每个类别的 Dice 系数
 EMA pseudo Dice：nnU-Net 用指数移动平均 (EMA) 计算的整体 Dice（跨类别加权）
+
+
+目前问题：爆worker
+尝试：
+# 4) 训练前先用“稳态”环境变量（先跑通，再提速）
+export nnUNet_n_proc_DA=0        # 先关掉数据增强多进程
+export OMP_NUM_THREADS=4
+export MKL_NUM_THREADS=4
+export OPENBLAS_NUM_THREADS=4
+export MKL_THREADING_LAYER=GNU
+export nnUNet_compile=0
+export TORCHDYNAMO_DISABLE=1
 
