@@ -12,7 +12,11 @@ ssh zrui6736@discovery.usc.edu
 # 进入项目（任选其一）
 cd /project2/ruishanl_1185/zrui6736/Healthcare
 # 或者（若建了快捷链接）
-# cd ~/Healthcare
+cd ~/Healthcare
+
+激活conda环境(py310)：
+source ~/.bashrc
+conda activate /project2/ruishanl_1185/zrui6736/envs/py310
 
 # 拉取最新代码 (一定要在/project2/ruishanl_1185/zrui6736/Healthcare里面)
 git pull
@@ -28,6 +32,7 @@ srun --partition=gpu \
      --mem=16G \
      --time=01:00:00 \
      --pty bash
+单行：srun --partition=gpu --gres=gpu:1 --cpus-per-task=4 --mem=16G --time=6:00:00 --pty bash
 
 #查询所在目录：pwd
 #查询所用环境：which python
@@ -46,7 +51,7 @@ $nnUNet_raw/Dataset001_xxx/
 影像：caseID_0000.nii.gz
 标签：caseID.nii.gz
 使用powershell：
-cd "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_raw\Ruishan_T1_VIBE_Data_30"
+cd "D:\Healthcare\nnunet\nnUNet_raw\Dataset001_Ruishan_T1_VIBE_Data_30"
 看到确认提示符如PS D:\USC Research ...\Ruishan_T1_VIBE_Data_30>后
 Get-ChildItem -File -Filter "*_img.nii.gz" | ForEach-Object { $new = $_.Name -replace "_img\.nii\.gz$", "_0000.nii.gz"; Rename-Item $_.FullName $new; Move-Item $new ".\imagesTr\" }
 Get-ChildItem -File -Filter "*_lbl.nii.gz" | ForEach-Object { $new = $_.Name -replace "_lbl\.nii\.gz$", ".nii.gz"; Rename-Item $_.FullName $new; Move-Item $new ".\labelsTr\" }
@@ -54,20 +59,69 @@ Get-ChildItem -File -Filter "*_lbl.nii.gz" | ForEach-Object { $new = $_.Name -re
 
 而后配置环境变量：设置原始数据、预处理数据和结果存放位置：
 打开powershell管理员运行：
-setx nnUNet_raw "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_raw"
-setx nnUNet_preprocessed "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_preprocessed"
-setx nnUNet_results "D:\USC Research Ruishan Liu\multi-organ segmentation论文整理\Healthcare\nnunet\nnUNet_results"
+setx nnUNet_raw "D:\Healthcare\nnunet\nnUNet_raw"
+setx nnUNet_preprocessed "D:\Healthcare\nnunet\nnUNet_preprocessed"
+setx nnUNet_results "D:\Healthcare\nnunet\nnUNet_results"
 验证：
 echo $Env:nnUNet_raw
 echo $Env:nnUNet_preprocessed
 echo $Env:nnUNet_results
 
+预处理：
+使用anaconda propmt：(因为已设置好环境变量)
+conda activate Healthcare
+2D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 2d --verify_dataset_integrity
+3D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 3d_fullres --verify_dataset_integrity
+2D+3D：nnUNetv2_plan_and_preprocess -d 001 --verify_dataset_integrity
+而后在nnUNet_preprocessed文件夹会生成一系列东西：
+
+训练：
+降低数据增强进程数：setx nnUNet_n_proc_DA 2
+2D：nnUNetv2_train 001 2d 0 -device cpu
+
+
 
 服务器上配置：
 # 安装 nnU-Net
-conda install install nnunetv2
-# 创建并设置三类目录（改成服务器上的实际路径）
-mkdir -p /data/nnUNet_raw /data/nnUNet_preprocessed /data/nnUNet_results
-echo 'export nnUNet_raw=/data/nnUNet_raw'             >> ~/.bashrc
-echo 'export nnUNet_preprocessed=/data/nnUNet_preprocessed' >> ~/.bashrc
-echo 'export nnUNet_results=/data/nnUNet_results'      >> ~/.bashrc
+pip install nnunetv2
+
+设置环境变量：
+nano ~/.bashrc
+export nnUNet_raw=/project2/ruishanl_1185/zrui6736/nnunet/nnUNet_raw
+export nnUNet_preprocessed=/project2/ruishanl_1185/zrui6736/nnunet/nnUNet_preprocessed
+export nnUNet_results=/project2/ruishanl_1185/zrui6736/nnunet/nnUNet_results
+Ctrl + O，回车保存，然后Ctrl + X退出
+验证：source ~/.bashrc
+echo $nnUNet_raw
+echo $nnUNet_preprocessed
+echo $nnUNet_results
+
+激活conda环境(py310)：
+source ~/.bashrc
+conda activate /project2/ruishanl_1185/zrui6736/envs/py310
+
+#分配GPU:申请 1 块 GPU，4 CPU 核，16GB 内存，6 小时
+srun --partition=gpu --gres=gpu:1 --cpus-per-task=4 --mem=16G --time=6:00:00 --pty bash
+
+激活后检查cuda：
+python - <<'PY'
+import torch; print("torch:", torch.__version__, "cuda?", torch.cuda.is_available())
+PY
+
+训练(共4种)：
+1. 2D(最好4CPU,24G内存)：把 3D 体数据切成单独 2D 切片训练；显存需求最低；速度快；对跨切片信息利用较少。
+依次是nnU-Net 数据增强/数据加载的并行进程数为1,最多使用 4 个 CPU 线程，
+export nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 2d 0 -device cuda
+2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
+export nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 3d_fullres 0 -device cuda
+3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
+nnUNetv2_train 001 3d_lowres 0 -device cuda
+4. 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
+nnUNetv2_train 001 3d_cascade_fullres 0 -device cuda
+
+评测指标：
+Dice：0–1 的重叠指标，值越高分割越准
+各种loss：可以是负数，越负越好
+Pseudo-Dice 是 nnU-Net 的主要评估指标，相当于每个类别的 Dice 系数
+EMA pseudo Dice：nnU-Net 用指数移动平均 (EMA) 计算的整体 Dice（跨类别加权）
+
