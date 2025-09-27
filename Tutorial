@@ -146,9 +146,9 @@ EMA pseudo Dice：nnU-Net 用指数移动平均 (EMA) 计算的整体 Dice（跨
 目前问题：爆worker
 尝试：
 # 4) 训练前先用“稳态”环境变量（先跑通，再提速）
-export nnUNet_n_proc_DA=0        # 先关掉数据增强多进程
-export OMP_NUM_THREADS=4
-export MKL_NUM_THREADS=4
+export nnUNet_n_proc_DA=0        # 先关掉数据增强多进程（大概率罪魁祸首）
+export OMP_NUM_THREADS=4         #这个也有可能
+export MKL_NUM_THREADS=4         #这个也有可能
 export OPENBLAS_NUM_THREADS=4
 export MKL_THREADING_LAYER=GNU
 export nnUNet_compile=0
