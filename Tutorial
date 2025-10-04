@@ -120,7 +120,7 @@ python - <<'PY'
 import torch; print("torch:", torch.__version__, "cuda?", torch.cuda.is_available())
 PY
 
-训练(共4种)：
+训练(共4种)：现在默认的是PlainConvUNet（2D / 3D fullres）
 1. 2D(最好4CPU,24G内存)：把 3D 体数据切成单独 2D 切片训练；显存需求最低；速度快；对跨切片信息利用较少。
 依次是nnU-Net 数据增强/数据加载的并行进程数为1,最多使用 4 个 CPU 线程，
 export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 001 2d 0 -device cuda
@@ -128,13 +128,23 @@ export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 001 2d 0 -de
 export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 001 2d 0 -device cuda
 
 2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
-export nnUNet_compile=0 export nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 3d_fullres 0 -device cuda
+export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 3d_fullres 0 -device cuda
 
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
 nnUNetv2_train 001 3d_lowres 0 -device cuda
 
 4. 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
 nnUNetv2_train 001 3d_cascade_fullres 0 -device cuda
+
+# ResEnc-M
+nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncM -device cuda
+
+# ResEnc-L
+nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncL -device cuda
+
+# ResEnc-XL
+nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncXL -device cuda
+
 
 评测指标：
 Dice：0–1 的重叠指标，值越高分割越准
@@ -165,3 +175,38 @@ screen -ls   查看screen
 screen -D -r my_screen  进入screen
 ctrl+A+D 离开screen
 screen -X -S screen_name quit 永久关闭screen
+
+记得安装hiddenlayer
+
+
+3D worker崩，正在尝试：
+# 1) 关闭 JIT 编译，加快启动
+export nnUNet_compile=0
+
+# 2) 关闭并行数据增强/验证（关键！把 worker 并发设为 0）
+export nnUNet_n_proc_DA=0
+export nnUNet_n_proc_val=0
+# v2 有时用下面这组名字——两套都设更保险
+export nnUNetv2_n_proc_DA=0
+export nnUNetv2_n_proc_val=0
+
+# 3) 避免 /dev/shm 问题（集群/容器常见）
+export nnUNet_use_shm=False
+export nnUNetv2_use_shm=False
+
+# 4) 防止 OpenMP/BLAS 抢线程导致 worker 掉线
+export OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+
+export nnUNet_compile=0; export nnUNet_n_proc_DA=0; export nnUNet_n_proc_val=0; export nnUNetv2_n_proc_DA=0; export nnUNetv2_n_proc_val=0; export nnUNet_use_shm=False; export nnUNetv2_use_shm=False; export OMP_NUM_THREADS=1; export MKL_NUM_THREADS=1; export OPENBLAS_NUM_THREADS=1
+
+# 5) 开跑
+nnUNetv2_train 001 3d_fullres 0 -device cuda
+
+把M/L/XL模型复制到虚拟环境中：
+cp /project2/ruishanl_1185/zrui6736/Healthcare/nnunet/nnunetv2/training/nnUNetTrainer/nnUNetTrainer_ResEncXL.py \
+   /project2/ruishanl_1185/zrui6736/envs/py310/lib/python3.10/site-packages/nnunetv2/training/nnUNetTrainer/
+
+设置训练结果储存位置：
+export nnUNet_results=/project2/ruishanl_1185/zrui6736/nnunet_results/nnunet_L
