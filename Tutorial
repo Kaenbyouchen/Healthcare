@@ -133,14 +133,16 @@ export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; 
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
 nnUNetv2_train 002 3d_lowres 0 -device cuda
 
-4. 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
+4. (已和解) 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
+先运行：export nnUNet_raw=/project2/ruishanl_1185/zrui6736/Healthcare/nnunet/nnUNet_raw; export nnUNet_preprocessed=/project2/ruishanl_1185/zrui6736/Healthcare/nnunet/nnUNet_preprocessed; export nnUNet_results=/project2/ruishanl_1185/zrui6736/Healthcare/nnunet/nnUNet_results; OUT=$nnUNet_results/Dataset002_Abdomen/nnUNetTrainer__nnUNetPlans__3d_lowres/predicted_next_stage/3d_cascade_fullres; mkdir -p "$OUT"; nnUNetv2_predict -d 002 -c 3d_lowres -f 0 -tr nnUNetTrainer -i "$nnUNet_raw/Dataset002_Abdomen/imagesTr" -o "$OUT" --disable_tta -chk checkpoint_best.pth
+
 nnUNetv2_train 002 3d_cascade_fullres 0 -device cuda
 
 # ResEnc-M
-nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncM -device cuda
+nnUNetv2_train 002 3d_fullres 0 -tr nnUNetTrainer_ResEncM -device cuda
 
 # ResEnc-L
-nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncL -device cuda
+nnUNetv2_train 002 3d_fullres 0 -tr nnUNetTrainer_ResEncL -device cuda
 
 # ResEnc-XL
 nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncXL -device cuda
