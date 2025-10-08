@@ -72,7 +72,7 @@ echo $Env:nnUNet_results
 conda activate Healthcare
 2D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 2d --verify_dataset_integrity
 3D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 3d_fullres --verify_dataset_integrity
-2D+3D：nnUNetv2_plan_and_preprocess -d 001 --verify_dataset_integrity
+2D+3D：nnUNetv2_plan_and_preprocess -d 002 --verify_dataset_integrity
 而后在nnUNet_preprocessed文件夹会生成一系列东西：
 
 训练：
@@ -125,16 +125,16 @@ PY
 依次是nnU-Net 数据增强/数据加载的并行进程数为1,最多使用 4 个 CPU 线程，
 export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 001 2d 0 -device cuda
 如果是P100,显卡用这行（nnUNet_compile用不了）：
-export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 001 2d 0 -device cuda
+export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 002 2d 0 -device cuda
 
 2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
-export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 001 3d_fullres 0 -device cuda
+export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 002 3d_fullres 0 -device cuda
 
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
-nnUNetv2_train 001 3d_lowres 0 -device cuda
+nnUNetv2_train 002 3d_lowres 0 -device cuda
 
 4. 3d_cascade_fullres:级联策略：先训练 3d_lowres，再把预测的 coarse segmentation 作为先验去训练高分辨率模型；适合超大体积（脑、全腹部等）。
-nnUNetv2_train 001 3d_cascade_fullres 0 -device cuda
+nnUNetv2_train 002 3d_cascade_fullres 0 -device cuda
 
 # ResEnc-M
 nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncM -device cuda
@@ -202,7 +202,7 @@ export OPENBLAS_NUM_THREADS=1
 export nnUNet_compile=0; export nnUNet_n_proc_DA=0; export nnUNet_n_proc_val=0; export nnUNetv2_n_proc_DA=0; export nnUNetv2_n_proc_val=0; export nnUNet_use_shm=False; export nnUNetv2_use_shm=False; export OMP_NUM_THREADS=1; export MKL_NUM_THREADS=1; export OPENBLAS_NUM_THREADS=1
 
 # 5) 开跑
-nnUNetv2_train 001 3d_fullres 0 -device cuda
+nnUNetv2_train 002 3d_fullres 0 -device cuda
 
 把M/L/XL模型复制到虚拟环境中：
 cp /project2/ruishanl_1185/zrui6736/Healthcare/nnunet/nnunetv2/training/nnUNetTrainer/nnUNetTrainer_ResEncXL.py \
