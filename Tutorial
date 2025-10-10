@@ -145,7 +145,7 @@ nnUNetv2_train 002 3d_fullres 0 -tr nnUNetTrainer_ResEncM -device cuda
 nnUNetv2_train 002 3d_fullres 0 -tr nnUNetTrainer_ResEncL -device cuda
 
 # ResEnc-XL
-nnUNetv2_train 001 3d_fullres 0 -tr nnUNetTrainer_ResEncXL -device cuda
+nnUNetv2_train 002 3d_fullres 0 -tr nnUNetTrainer_ResEncXL -device cuda
 
 
 评测指标：
