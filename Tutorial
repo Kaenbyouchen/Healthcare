@@ -71,7 +71,7 @@ echo $Env:nnUNet_results
 使用anaconda propmt：(因为已设置好环境变量)
 conda activate Healthcare
 2D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 2d --verify_dataset_integrity
-3D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 3d_fullres --verify_dataset_integrity
+3D生成预处理：nnUNetv2_plan_and_preprocess -d 031 -c 3d_fullres --verify_dataset_integrity
 2D+3D：nnUNetv2_plan_and_preprocess -d 002 --verify_dataset_integrity
 而后在nnUNet_preprocessed文件夹会生成一系列东西：
 
