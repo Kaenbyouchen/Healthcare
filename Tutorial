@@ -71,7 +71,7 @@ echo $Env:nnUNet_results
 使用anaconda propmt：(因为已设置好环境变量)
 conda activate Healthcare
 2D生成预处理：nnUNetv2_plan_and_preprocess -d 001 -c 2d --verify_dataset_integrity
-3D生成预处理：nnUNetv2_plan_and_preprocess -d 031 -c 3d_fullres --verify_dataset_integrity
+3D生成预处理：nnUNetv2_plan_and_preprocess -d 041 -c 3d_fullres --verify_dataset_integrity
 2D+3D：nnUNetv2_plan_and_preprocess -d 002 --verify_dataset_integrity
 而后在nnUNet_preprocessed文件夹会生成一系列东西：
 
@@ -123,12 +123,12 @@ PY
 训练(共4种)：现在默认的是PlainConvUNet（2D / 3D fullres）
 1. 2D(最好4CPU,24G内存)：把 3D 体数据切成单独 2D 切片训练；显存需求最低；速度快；对跨切片信息利用较少。
 依次是nnU-Net 数据增强/数据加载的并行进程数为1,最多使用 4 个 CPU 线程，
-export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 033 2d 0 -device cuda
+export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 041 2d 0 -device cuda
 如果是P100,显卡用这行（nnUNet_compile用不了）：
 export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 002 2d 0 -device cuda
 
 2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
-export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 033 3d_fullres 0 -device cuda
+export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 032 3d_fullres 0 -device cuda
 
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
 nnUNetv2_train 002 3d_lowres 0 -device cuda
