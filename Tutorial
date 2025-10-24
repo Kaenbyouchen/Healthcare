@@ -128,7 +128,7 @@ export nnUNet_n_proc_DA=0; export OMP_NUM_THREADS=4; nnUNetv2_train 041 2d 0 -de
 export nnUNet_compile=0 TORCHDYNAMO_DISABLE=1 TORCHINDUCTOR_DISABLE=1 nnUNet_n_proc_DA=0 OMP_NUM_THREADS=1; ulimit -n 4096; nnUNetv2_train 002 2d 0 -device cuda
 
 2. 3D_fullres(最好6CPU,48G内存)：原始分辨率 3D patch 训练；最高精度但显存需求最大。
-export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 041 3d_fullres 0 -device cuda
+export nnUNet_compile=0; export nnUNet_n_proc_val=0 export; nnUNet_n_proc_DA=1; export OMP_NUM_THREADS=4; nnUNetv2_train 031 3d_fullres 0 -device cuda
 
 3. 3d_lowres:先将体积下采样到较低分辨率，显存占用小；常与 cascade 联用。
 nnUNetv2_train 002 3d_lowres 0 -device cuda
